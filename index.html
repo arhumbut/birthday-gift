@@ -289,6 +289,7 @@
         let analyser;
         let microphone;
         let javascriptNode;
+        let candleBlown = false;
 
         // Background decorative floating hearts
         function createHearts() {
@@ -318,6 +319,7 @@
             document.getElementById(screenId).classList.add('active');
 
             if (screenId === 'screen-candle') {
+                candleBlown = false;
                 initMic();
             }
         }
@@ -345,15 +347,26 @@
 
                 // Detect blow (sudden increase in volume)
                 let lastVolume = 0;
+                let blowCounter = 0;
                 javascriptNode.onaudioprocess = function() {
+                    if (candleBlown) return; // Prevent multiple triggers
+                    
                     const array = new Uint8Array(analyser.frequencyBinCount);
                     analyser.getByteFrequencyData(array);
                     const values = array.reduce((a, b) => a + b) / array.length;
                     
-                    // Blow detection: sudden increase in volume
-                    if (values > 100 && values - lastVolume > 40) {
-                        candle_blown();
+                    // Improved blow detection with lower thresholds
+                    // Detects: sustained moderate volume (> 50) OR sudden jump in volume
+                    if (values > 50 && (values - lastVolume > 20 || values > 80)) {
+                        blowCounter++;
+                        // Require 3 consecutive detections to prevent false positives
+                        if (blowCounter > 2) {
+                            candle_blown();
+                        }
+                    } else {
+                        blowCounter = Math.max(0, blowCounter - 1);
                     }
+                    
                     lastVolume = values;
                 };
             })
@@ -365,6 +378,7 @@
         }
 
         function candle_blown() {
+            candleBlown = true;
             document.getElementById('cake-flame').style.display = 'none';
             document.getElementById('mic-indicator').innerText = "🎉 Wish Made! Moving on...";
             document.getElementById('mic-indicator').style.color = "var(--primary-color)";
