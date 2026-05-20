@@ -127,6 +127,11 @@
             transform: scale(0.95);
         }
 
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
         /* Screen 1: Envelope */
         .envelope-icon {
             font-size: 5rem;
@@ -280,43 +285,57 @@
         const MUSIC_URL = "https://archive.org/download/lp_the-exciting-connie-francis_connie-francis/disc1/02.%20Pretty%20Little%20Baby.mp3"; // Replace with your custom direct music URL
         // =================================================
 
-        // Populate Custom Data
-        document.getElementById('partner-name-wish').innerText = PARTNER_NAME;
-        document.getElementById('partner-age').innerText = TURNING_AGE;
-        document.getElementById('music-source').src = MUSIC_URL;
-
         let audioContext;
         let analyser;
         let microphone;
         let javascriptNode;
         let candleBlown = false;
+        let micStream = null;
+
+        // Initialize page data
+        function initializePageData() {
+            const partnerNameElement = document.getElementById('partner-name-wish');
+            const partnerAgeElement = document.getElementById('partner-age');
+            const musicSourceElement = document.getElementById('music-source');
+
+            if (partnerNameElement) partnerNameElement.innerText = PARTNER_NAME;
+            if (partnerAgeElement) partnerAgeElement.innerText = TURNING_AGE;
+            if (musicSourceElement) musicSourceElement.src = MUSIC_URL;
+        }
 
         // Background decorative floating hearts
         function createHearts() {
-            for(let i=0; i<15; i++) {
+            for(let i = 0; i < 15; i++) {
                 let heart = document.createElement('div');
                 heart.className = 'floating-heart';
                 heart.innerHTML = '❤️';
                 heart.style.left = Math.random() * 100 + 'vw';
                 heart.style.animationDelay = Math.random() * 4 + 's';
-                heart.style.fontSize = Math.random() * 15 + 15 + 'px';
+                heart.style.fontSize = (Math.random() * 15 + 15) + 'px';
                 document.body.appendChild(heart);
             }
         }
-        createHearts();
 
         function startExperience() {
             // Play Music safely after user interaction
             const music = document.getElementById('bg-music');
-            music.load();
-            music.play().catch(e => console.log("Audio play blocked or failed:", e));
+            if (music) {
+                music.load();
+                music.play().catch(e => console.log("Audio play blocked or failed:", e));
+            }
             
             nextScreen('screen-wish');
         }
 
         function nextScreen(screenId) {
+            const targetScreen = document.getElementById(screenId);
+            if (!targetScreen) {
+                console.error('Screen not found:', screenId);
+                return;
+            }
+
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
+            targetScreen.classList.add('active');
 
             if (screenId === 'screen-candle') {
                 candleBlown = false;
@@ -327,9 +346,14 @@
         // Microphone Blowing Listener
         function initMic() {
             const indicator = document.getElementById('mic-indicator');
+            if (!indicator) {
+                console.error('Mic indicator element not found');
+                return;
+            }
             
             navigator.mediaDevices.getUserMedia({ audio: true, video: false })
             .then(function(stream) {
+                micStream = stream;
                 indicator.innerText = "🎙️ Mic Active: Blow into it now!";
                 indicator.style.color = "var(--primary-color)";
 
@@ -351,27 +375,31 @@
                 javascriptNode.onaudioprocess = function() {
                     if (candleBlown) return; // Prevent multiple triggers
                     
-                    const array = new Uint8Array(analyser.frequencyBinCount);
-                    analyser.getByteFrequencyData(array);
-                    const values = array.reduce((a, b) => a + b) / array.length;
-                    
-                    // Improved blow detection with lower thresholds
-                    // Detects: sustained moderate volume (> 50) OR sudden jump in volume
-                    if (values > 50 && (values - lastVolume > 20 || values > 80)) {
-                        blowCounter++;
-                        // Require 3 consecutive detections to prevent false positives
-                        if (blowCounter > 2) {
-                            candle_blown();
+                    try {
+                        const array = new Uint8Array(analyser.frequencyBinCount);
+                        analyser.getByteFrequencyData(array);
+                        const values = array.reduce((a, b) => a + b) / array.length;
+                        
+                        // Improved blow detection with lower thresholds
+                        // Detects: sustained moderate volume (> 50) OR sudden jump in volume
+                        if (values > 50 && (values - lastVolume > 20 || values > 80)) {
+                            blowCounter++;
+                            // Require 3 consecutive detections to prevent false positives
+                            if (blowCounter > 2) {
+                                candle_blown();
+                            }
+                        } else {
+                            blowCounter = Math.max(0, blowCounter - 1);
                         }
-                    } else {
-                        blowCounter = Math.max(0, blowCounter - 1);
+                        
+                        lastVolume = values;
+                    } catch (error) {
+                        console.error('Error processing audio:', error);
                     }
-                    
-                    lastVolume = values;
                 };
             })
             .catch(function(err) {
-                indicator.innerText = "❌ Microphone access denied";
+                indicator.innerText = "❌ Microphone access denied. Please enable microphone access.";
                 indicator.style.color = "red";
                 console.error('Microphone Error:', err);
             });
@@ -379,32 +407,60 @@
 
         function candle_blown() {
             candleBlown = true;
-            document.getElementById('cake-flame').style.display = 'none';
-            document.getElementById('mic-indicator').innerText = "🎉 Wish Made! Moving on...";
-            document.getElementById('mic-indicator').style.color = "var(--primary-color)";
+            const flameElement = document.getElementById('cake-flame');
+            const indicator = document.getElementById('mic-indicator');
+
+            if (flameElement) flameElement.style.display = 'none';
+            if (indicator) {
+                indicator.innerText = "🎉 Wish Made! Moving on...";
+                indicator.style.color = "var(--primary-color)";
+            }
             
-            confetti({
-                particleCount: 150,
-                spread: 60,
-                origin: { y: 0.6 }
-            });
+            // Stop microphone stream
+            if (micStream) {
+                micStream.getTracks().forEach(track => track.stop());
+            }
+
+            try {
+                confetti({
+                    particleCount: 150,
+                    spread: 60,
+                    origin: { y: 0.6 }
+                });
+            } catch (error) {
+                console.error('Confetti error:', error);
+            }
 
             setTimeout(() => nextScreen('screen-cut'), 2000);
         }
 
         function cutCake() {
             const cake = document.getElementById('final-cake');
-            cake.classList.add('cut');
-            
-            confetti({
-                particleCount: 200,
-                spread: 100,
-                origin: { y: 0.5 }
-            });
+            const cutBtn = document.getElementById('cut-btn');
 
-            document.getElementById('cut-btn').disabled = true;
-            document.getElementById('cut-btn').innerText = "🎊 Enjoy your cake!";
+            if (cake) cake.classList.add('cut');
+            
+            try {
+                confetti({
+                    particleCount: 200,
+                    spread: 100,
+                    origin: { y: 0.5 }
+                });
+            } catch (error) {
+                console.error('Confetti error:', error);
+            }
+
+            if (cutBtn) {
+                cutBtn.disabled = true;
+                cutBtn.innerText = "🎊 Enjoy your cake!";
+            }
         }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePageData();
+            createHearts();
+        });
     </script>
 
 </body>
