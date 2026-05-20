@@ -56,11 +56,12 @@
 
         /* Decorative Hearts */
         .floating-heart {
-            position: absolute;
+            position: fixed;
             color: rgba(255, 117, 151, 0.4);
             font-size: 20px;
             animation: floatUp 4s infinite ease-in-out;
-            z-index: 1;
+            z-index: 0;
+            pointer-events: none;
         }
 
         @keyframes floatUp {
@@ -79,6 +80,8 @@
             height: 100%;
             z-index: 2;
             animation: fadeIn 0.8s ease forwards;
+            overflow-y: auto;
+            padding: 10px 0;
         }
 
         .screen.active {
@@ -101,7 +104,8 @@
         p {
             font-size: 1.05rem;
             line-height: 1.6;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
+            max-width: 90%;
         }
 
         .highlight {
@@ -121,6 +125,13 @@
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(255, 117, 151, 0.4);
             transition: transform 0.2s, background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: #ff5a7f;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 117, 151, 0.5);
         }
 
         .btn:active {
@@ -150,6 +161,23 @@
             margin-top: 15px;
             font-weight: bold;
             color: #888;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mic-status.active {
+            color: var(--primary-color);
+            background: #fff0f5;
+        }
+
+        .mic-status.error {
+            color: #d32f2f;
+            background: #ffebee;
         }
 
         /* The Cake & Candle Graphics */
@@ -158,6 +186,9 @@
             width: 200px;
             height: 200px;
             margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .cake {
@@ -170,19 +201,26 @@
             background: #f1c40f; /* Vanilla layer */
             border-radius: 15px 15px 5px 5px;
             box-shadow: inset 0 -15px 0 #e67e22, 0 6px 0 #e8bb8a; /* Chocolate filling + shadow */
+            transition: all 0.3s ease;
         }
 
         .cake::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 30px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 30px;
             background: #ecf0f1; /* Frosting top */
             border-radius: 15px 15px 0 0;
         }
 
         .frosting-drips {
             position: absolute;
-            top: 25px; left: 0; width: 100%; height: 15px;
+            top: 25px;
+            left: 0;
+            width: 100%;
+            height: 15px;
             background: #ecf0f1;
             border-radius: 0 0 10px 10px;
         }
@@ -196,6 +234,7 @@
             height: 45px;
             background: linear-gradient(to right, #3498db, #9b59b6);
             border-radius: 3px;
+            z-index: 10;
         }
 
         .flame {
@@ -209,6 +248,13 @@
             border-radius: 50% 50% 20% 20%;
             box-shadow: 0 0 10px #ff9f43;
             animation: flicker 0.1s infinite alternate;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .flame.extinguished {
+            opacity: 0;
+            animation: none;
         }
 
         @keyframes flicker {
@@ -221,16 +267,38 @@
             animation: splitCake 0.5s forwards ease;
         }
         @keyframes splitCake {
-            to { transform: translateX(-50%) scaleX(0.9); filter: drop-shadow(4px 0px 0px #d35400); }
+            to {
+                transform: translateX(-50%) scaleX(0.9);
+                filter: drop-shadow(4px 0px 0px #d35400);
+                opacity: 0.8;
+            }
         }
 
-        .hidden { display: none !important; }
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading indicator */
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 117, 151, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
 
     <!-- Background Music -->
-    <audio id="bg-music" loop>
+    <audio id="bg-music" loop preload="auto">
         <source id="music-source" src="" type="audio/mpeg">
     </audio>
 
@@ -247,9 +315,9 @@
         <div class="screen" id="screen-wish">
             <h1>Happy Birthday, <br><span id="partner-name-wish" class="highlight">My Future</span>! 🎉</h1>
             <p>Today, you are officially turning <span id="partner-age" class="highlight">X</span>!</p>
-            <p>Even though miles keep us apart today, my heart is right next to yours. I am so incredibly proud of who you are, and I can't wait for all the birthdays we will celebrate side-by-side in the future.</p>
+            <p>Even though miles keep us apart today, my heart is right next to yours. I am so incredibly proud of who you are, and I can't wait for all the birthdays we will celebrate side-by-side in the future. You make every day brighter just by being you! 💖</p>
             <p class="highlight">Ready to celebrate your day?</p>
-            <button class="btn" onclick="nextScreen('screen-candle')">Let's See the Cake!</button>
+            <button class="btn" onclick="nextScreen('screen-candle')">Let's See the Cake! 🎂</button>
         </div>
 
         <!-- Screen 3: Blow the Candle -->
@@ -258,23 +326,42 @@
             <p>Lean in close to your phone's microphone and <strong>give a big blow</strong> to extinguish your candle!</p>
             
             <div class="cake-container">
-                <div class="candle" id="candle-stick"><div class="flame" id="cake-flame"></div></div>
-                <div class="cake"><div class="frosting-drips"></div></div>
+                <div class="candle" id="candle-stick">
+                    <div class="flame" id="cake-flame"></div>
+                </div>
+                <div class="cake">
+                    <div class="frosting-drips"></div>
+                </div>
             </div>
 
-            <p id="mic-indicator" class="mic-status">Waiting for microphone permission...</p>
+            <p id="mic-indicator" class="mic-status">
+                <span class="spinner"></span>Requesting mic access...
+            </p>
         </div>
 
         <!-- Screen 4: Cut the Cake -->
         <div class="screen" id="screen-cut">
             <h1>Time to Cut the Cake! 🎂</h1>
-            <p>Tap the knife below to cut a big virtual slice for yourself!</p>
+            <p>Tap the knife below to cut a big virtual slice for yourself and celebrate!</p>
             
             <div class="cake-container">
-                <div class="cake" id="final-cake"><div class="frosting-drips"></div></div>
+                <div class="cake" id="final-cake">
+                    <div class="frosting-drips"></div>
+                </div>
             </div>
 
             <button class="btn" id="cut-btn" onclick="cutCake()">🔪 Cut Cake</button>
+        </div>
+
+        <!-- Screen 5: Final Celebration -->
+        <div class="screen" id="screen-celebration">
+            <h1>Happy Birthday! 🎉🎊</h1>
+            <p id="celebration-message" class="highlight" style="font-size: 1.2rem; margin: 20px 0;">
+                Enjoy every moment of your special day!
+            </p>
+            <p style="font-size: 1rem;">You deserve all the happiness in the world 💕</p>
+            <p>Until we celebrate together in person... 🎈</p>
+            <button class="btn" onclick="resetExperience()">Start Over</button>
         </div>
     </div>
 
@@ -285,21 +372,27 @@
         const MUSIC_URL = "https://archive.org/download/lp_the-exciting-connie-francis_connie-francis/disc1/02.%20Pretty%20Little%20Baby.mp3"; // Replace with your custom direct music URL
         // =================================================
 
-        let audioContext;
-        let analyser;
-        let microphone;
-        let javascriptNode;
+        // Audio & Microphone Variables
+        let audioContext = null;
+        let analyser = null;
+        let microphone = null;
+        let javascriptNode = null;
         let candleBlown = false;
         let micStream = null;
+        let baselineVolume = 0;
+        let baselineSamples = 0;
+        const BASELINE_SAMPLE_COUNT = 30;
 
         // Initialize page data
         function initializePageData() {
             const partnerNameElement = document.getElementById('partner-name-wish');
             const partnerAgeElement = document.getElementById('partner-age');
+            const celebrationMessage = document.getElementById('celebration-message');
             const musicSourceElement = document.getElementById('music-source');
 
             if (partnerNameElement) partnerNameElement.innerText = PARTNER_NAME;
             if (partnerAgeElement) partnerAgeElement.innerText = TURNING_AGE;
+            if (celebrationMessage) celebrationMessage.innerText = `${PARTNER_NAME}, you are ${TURNING_AGE} and absolutely amazing! 🎉`;
             if (musicSourceElement) musicSourceElement.src = MUSIC_URL;
         }
 
@@ -319,9 +412,10 @@
         function startExperience() {
             // Play Music safely after user interaction
             const music = document.getElementById('bg-music');
-            if (music) {
-                music.load();
-                music.play().catch(e => console.log("Audio play blocked or failed:", e));
+            if (music && music.src) {
+                music.play().catch(err => {
+                    console.warn("Audio playback failed (may be blocked by browser):", err);
+                });
             }
             
             nextScreen('screen-wish');
@@ -334,93 +428,126 @@
                 return;
             }
 
+            // Stop microphone if leaving candle screen
+            if (screenId !== 'screen-candle') {
+                stopMicrophone();
+            }
+
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             targetScreen.classList.add('active');
 
+            // Initialize microphone when entering candle screen
             if (screenId === 'screen-candle') {
                 candleBlown = false;
-                initMic();
+                setTimeout(() => initMic(), 300);
+            }
+
+            // Show celebration on final screen
+            if (screenId === 'screen-celebration') {
+                triggerFinalConfetti();
             }
         }
 
         // Microphone Blowing Listener
         function initMic() {
             const indicator = document.getElementById('mic-indicator');
-            if (!indicator) {
-                console.error('Mic indicator element not found');
-                return;
-            }
             
             navigator.mediaDevices.getUserMedia({ audio: true, video: false })
             .then(function(stream) {
                 micStream = stream;
-                indicator.innerText = "🎙️ Mic Active: Blow into it now!";
-                indicator.style.color = "var(--primary-color)";
+                indicator.innerHTML = "🎙️ Mic Active: Blow into it now!";
+                indicator.classList.add('active');
+                indicator.classList.remove('error');
 
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
                 microphone = audioContext.createMediaStreamSource(stream);
-                javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+                javascriptNode = audioContext.createScriptProcessor(4096, 1, 1);
 
-                analyser.smoothingTimeConstant = 0.8;
-                analyser.fftSize = 1024;
+                analyser.smoothingTimeConstant = 0.85;
+                analyser.fftSize = 2048;
 
                 microphone.connect(analyser);
                 analyser.connect(javascriptNode);
                 javascriptNode.connect(audioContext.destination);
 
                 // Detect blow (sudden increase in volume)
-                let lastVolume = 0;
                 let blowCounter = 0;
+                baselineSamples = 0;
+                baselineVolume = 0;
+
                 javascriptNode.onaudioprocess = function() {
                     if (candleBlown) return; // Prevent multiple triggers
                     
                     try {
                         const array = new Uint8Array(analyser.frequencyBinCount);
                         analyser.getByteFrequencyData(array);
-                        const values = array.reduce((a, b) => a + b) / array.length;
+                        const currentVolume = array.reduce((a, b) => a + b) / array.length;
                         
-                        // Improved blow detection with lower thresholds
-                        // Detects: sustained moderate volume (> 50) OR sudden jump in volume
-                        if (values > 50 && (values - lastVolume > 20 || values > 80)) {
+                        // Establish baseline from first 30 samples
+                        if (baselineSamples < BASELINE_SAMPLE_COUNT) {
+                            baselineVolume += currentVolume;
+                            baselineSamples++;
+                            return;
+                        }
+
+                        // Calculate average baseline
+                        const avgBaseline = baselineVolume / BASELINE_SAMPLE_COUNT;
+                        const volumeThreshold = Math.max(avgBaseline + 25, 60);
+                        const suddenIncreaseThreshold = avgBaseline + 40;
+
+                        // Detect blow: significant sustained volume OR sudden jump
+                        if (currentVolume > volumeThreshold && currentVolume > avgBaseline * 1.3) {
                             blowCounter++;
-                            // Require 3 consecutive detections to prevent false positives
-                            if (blowCounter > 2) {
+                            if (blowCounter >= 2) {
                                 candle_blown();
                             }
                         } else {
                             blowCounter = Math.max(0, blowCounter - 1);
                         }
-                        
-                        lastVolume = values;
                     } catch (error) {
                         console.error('Error processing audio:', error);
                     }
                 };
             })
             .catch(function(err) {
-                indicator.innerText = "❌ Microphone access denied. Please enable microphone access.";
-                indicator.style.color = "red";
+                indicator.innerHTML = "❌ Microphone access denied. Please enable in browser settings.";
+                indicator.classList.add('error');
+                indicator.classList.remove('active');
                 console.error('Microphone Error:', err);
             });
         }
 
+        function stopMicrophone() {
+            if (micStream) {
+                micStream.getTracks().forEach(track => track.stop());
+                micStream = null;
+            }
+            if (audioContext && audioContext.state !== 'closed') {
+                audioContext.close();
+            }
+        }
+
         function candle_blown() {
+            if (candleBlown) return; // Prevent duplicate triggers
+            
             candleBlown = true;
             const flameElement = document.getElementById('cake-flame');
             const indicator = document.getElementById('mic-indicator');
 
-            if (flameElement) flameElement.style.display = 'none';
+            if (flameElement) {
+                flameElement.classList.add('extinguished');
+            }
             if (indicator) {
-                indicator.innerText = "🎉 Wish Made! Moving on...";
-                indicator.style.color = "var(--primary-color)";
+                indicator.innerHTML = "🎉 Wish Made! Moving on...";
+                indicator.classList.remove('active');
+                indicator.classList.add('active');
             }
             
             // Stop microphone stream
-            if (micStream) {
-                micStream.getTracks().forEach(track => track.stop());
-            }
+            stopMicrophone();
 
+            // Confetti celebration
             try {
                 confetti({
                     particleCount: 150,
@@ -431,20 +558,23 @@
                 console.error('Confetti error:', error);
             }
 
-            setTimeout(() => nextScreen('screen-cut'), 2000);
+            setTimeout(() => nextScreen('screen-cut'), 2500);
         }
 
         function cutCake() {
             const cake = document.getElementById('final-cake');
             const cutBtn = document.getElementById('cut-btn');
 
-            if (cake) cake.classList.add('cut');
+            if (cake) {
+                cake.classList.add('cut');
+            }
             
             try {
                 confetti({
                     particleCount: 200,
                     spread: 100,
-                    origin: { y: 0.5 }
+                    origin: { y: 0.5 },
+                    gravity: 0.8
                 });
             } catch (error) {
                 console.error('Confetti error:', error);
@@ -452,14 +582,51 @@
 
             if (cutBtn) {
                 cutBtn.disabled = true;
-                cutBtn.innerText = "🎊 Enjoy your cake!";
+                cutBtn.innerText = "🎊 Cake Cut!";
             }
+
+            setTimeout(() => nextScreen('screen-celebration'), 1500);
+        }
+
+        function triggerFinalConfetti() {
+            setTimeout(() => {
+                try {
+                    confetti({
+                        particleCount: 300,
+                        spread: 120,
+                        origin: { y: 0.5 },
+                        gravity: 0.6,
+                        drift: 0
+                    });
+                } catch (error) {
+                    console.error('Confetti error:', error);
+                }
+            }, 500);
+        }
+
+        function resetExperience() {
+            candleBlown = false;
+            const flameElement = document.getElementById('cake-flame');
+            if (flameElement) {
+                flameElement.classList.remove('extinguished');
+            }
+            const cutBtn = document.getElementById('cut-btn');
+            if (cutBtn) {
+                cutBtn.disabled = false;
+                cutBtn.innerText = "🔪 Cut Cake";
+            }
+            nextScreen('screen-welcome');
         }
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             initializePageData();
             createHearts();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            stopMicrophone();
         });
     </script>
 
