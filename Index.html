@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday, My Future!</title>
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts for Cute Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #ffeef2;
+            --primary-color: #ff7597;
+            --text-color: #4a3b40;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Card Container */
+        .phone-container {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            height: 85vh;
+            max-height: 700px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255, 117, 151, 0.2);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #fff;
+        }
+
+        /* Decorative Hearts */
+        .floating-heart {
+            position: absolute;
+            color: rgba(255, 117, 151, 0.4);
+            font-size: 20px;
+            animation: float Up 4s infinite ease-in-out;
+            z-index: 1;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+
+        /* Screens Management */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .highlight {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        /* Cute Buttons */
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 117, 151, 0.4);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Screen 1: Envelope */
+        .envelope-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Screen 3: Candle blowing visuals */
+        .mic-status {
+            font-size: 0.9rem;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #888;
+        }
+
+        /* The Cake & Candle Graphics */
+        .cake-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 20px 0;
+        }
+
+        .cake {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 90px;
+            background: #f1c40f; /* Vanilla layer */
+            border-radius: 15px 15px 5px 5px;
+            box-shadow: inset 0 -15px 0 #e67e22, 0 6px 0 #e8bb8a; /* Chocolate filling + shadow */
+        }
+
+        .cake::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 30px;
+            background: #ecf0f1; /* Frosting top */
+            border-radius: 15px 15px 0 0;
+        }
+
+        .frosting-drips {
+            position: absolute;
+            top: 25px; left: 0; width: 100%; height: 15px;
+            background: #ecf0f1;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .candle {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 45px;
+            background: linear-gradient(to right, #3498db, #9b59b6);
+            border-radius: 3px;
+        }
+
+        .flame {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 24px;
+            background: #ff9f43;
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 0 0 10px #ff9f43;
+            animation: flicker 0.1s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1); }
+            100% { transform: translateX(-50%) scale(1.1) skewX(5deg); }
+        }
+
+        /* Cake Cut Animation Effect */
+        .cake.cut {
+            animation: splitCake 0.5s forwards ease;
+        }
+        @keyframes splitCake {
+            to { transform: translateX(-50%) scaleX(0.9); filter: drop-shadow(4px 0px 0px #d35400); }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Background Music -->
+    <audio id="bg-music" loop>
+        <source id="music-source" src="" type="audio/mpeg">
+    </audio>
+
+    <div class="phone-container" id="container">
+        <!-- Screen 1: Welcome & Audio Activation -->
+        <div class="screen active" id="screen-welcome">
+            <div class="envelope-icon">💝</div>
+            <h1>A Special Delivery for My Favorite Person</h1>
+            <p>Distance means so little when someone means so much. I built a tiny world right here just for you.</p>
+            <button class="btn" onclick="startExperience()">Open Your Gift</button>
+        </div>
+
+        <!-- Screen 2: The Heartfelt Wish -->
+        <div class="screen" id="screen-wish">
+            <h1>Happy Birthday, <br><span id="partner-name-wish" class="highlight">My Future</span>! 🎉</h1>
+            <p>Today, you are officially turning <span id="partner-age" class="highlight">X</span>!</p>
+            <p>Even though miles keep us apart today, my heart is right next to yours. I am so incredibly proud of who you are, and I can't wait for all the birthdays we will celebrate side-by-side in our future.</p>
+            <p class="highlight">Ready to celebrate your day?</p>
+            <button class="btn" onclick="nextScreen('screen-candle')">Let's See the Cake!</button>
+        </div>
+
+        <!-- Screen 3: Blow the Candle -->
+        <div class="screen" id="screen-candle">
+            <h1>Make a Wish! 🌟</h1>
+            <p>Lean in close to your phone's microphone and <strong>give a big blow</strong> to extinguish your candle!</p>
+            
+            <div class="cake-container">
+                <div class="candle" id="candle-stick"><div class="flame" id="cake-flame"></div></div>
+                <div class="cake"><div class="frosting-drips"></div></div>
+            </div>
+
+            <p id="mic-indicator" class="mic-status">Waiting for microphone permission...</p>
+        </div>
+
+        <!-- Screen 4: Cut the Cake -->
+        <div class="screen" id="screen-cut">
+            <h1>Time to Cut the Cake! 🎂</h1>
+            <p>Tap the knife below to cut a big virtual slice for yourself!</p>
+            
+            <div class="cake-container">
+                <div class="cake" id="final-cake"><div class="frosting-drips"></div></div>
+            </div>
+
+            <button class="btn" id="cut-btn" onclick="cutCake()">🔪 Cut Cake</button>
+        </div>
+    </div>
+
+    <script>
+        // ================= CONFIGURATION =================
+        const PARTNER_NAME = "My Future Wife"; // Change to your partner's name
+        const TURNING_AGE = "21";              // Change to the age they are turning
+        const MUSIC_URL = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"; // Replace with your custom direct MP3 music URL
+        // =================================================
+
+        // Populate Custom Data
+        document.getElementById('partner-name-wish').innerText = PARTNER_NAME;
+        document.getElementById('partner-age').innerText = TURNING_AGE;
+        document.getElementById('music-source').src = MUSIC_URL;
+
+        let audioContext;
+        let analyser;
+        let microphone;
+        let javascriptNode;
+
+        // Background decorative floating hearts
+        function createHearts() {
+            for(let i=0; i<15; i++) {
+                let heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.innerHTML = '❤️';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDelay = Math.random() * 4 + 's';
+                heart.style.fontSize = Math.random() * 15 + 15 + 'px';
+                document.body.appendChild(heart);
+            }
+        }
+        createHearts();
+
+        function startExperience() {
+            // Play Music safely after user interaction
+            const music = document.getElementById('bg-music');
+            music.load();
+            music.play().catch(e => console.log("Audio play blocked or failed:", e));
+            
+            nextScreen('screen-wish');
+        }
+
+        function nextScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            if (screenId === 'screen-candle') {
+                initMic();
+            }
+        }
+
+        // Microphone Blowing Listener
+        function initMic() {
+            const indicator = document.getElementById('mic-indicator');
+            
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(function(stream) {
+                indicator.innerText = "🎙️ Mic Active: Blow into it now!";
+                indicator.style.color = "var(--primary-color)";
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                Normally I can help with things like this, but I don't seem to have access to that content. You can try again or ask me for something else.
