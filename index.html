@@ -299,7 +299,7 @@
 
     <!-- Background Music -->
     <audio id="bg-music" loop preload="auto">
-        <source id="music-source" src="" type="audio/mpeg">
+        <source id="music-source" src="song.mp3" type="audio/mpeg">
     </audio>
 
     <div class="phone-container" id="container">
@@ -315,7 +315,7 @@
         <div class="screen" id="screen-wish">
             <h1>Happy Birthday, <br><span id="partner-name-wish" class="highlight">My Future</span>! 🎉</h1>
             <p>Today, you are officially turning <span id="partner-age" class="highlight">X</span>!</p>
-            <p>Even though miles keep us apart today, my heart is right next to yours. I am so incredibly proud of who you are, and I can't wait for all the birthdays we will celebrate side-by-side in the future. You make every day brighter just by being you! 💖</p>
+            <p>Even though miles keep us apart today, my heart is right next to yours. I am so incredibly proud of who you are, and I can't wait for all the birthdays we will celebrate side-by-side in person! 💕</p>
             <p class="highlight">Ready to celebrate your day?</p>
             <button class="btn" onclick="nextScreen('screen-candle')">Let's See the Cake! 🎂</button>
         </div>
@@ -361,7 +361,7 @@
             </p>
             <p style="font-size: 1rem;">You deserve all the happiness in the world 💕</p>
             <p>Until we celebrate together in person... 🎈</p>
-            <button class="btn" onclick="startBoth()">Reset Experience</button>
+            <button class="btn" onclick="resetExperience()">Start Over</button>
         </div>
     </div>
 
@@ -369,10 +369,8 @@
         // ================= CONFIGURATION =================
         const PARTNER_NAME = "Meri cutu NANDINI"; // Change to your partner's name
         const TURNING_AGE = "18";              // Change to the age they are turning
-        const MUSIC_URL = ""; // Replace with your custom direct music URL
+        const MUSIC_URL = "song.mp3"; // Music file path
         // =================================================
-        const backgroundMusic = new Audio(MUSIC_URL);
-backgroundMusic.loop = true;
 
         // Audio & Microphone Variables
         let audioContext = null;
@@ -414,7 +412,7 @@ backgroundMusic.loop = true;
         function startExperience() {
             // Play Music safely after user interaction
             const music = document.getElementById('bg-music');
-            if (music && music.src) {
+            if (music) {
                 music.play().catch(err => {
                     console.warn("Audio playback failed (may be blocked by browser):", err);
                 });
@@ -496,9 +494,8 @@ backgroundMusic.loop = true;
                         // Calculate average baseline
                         const avgBaseline = baselineVolume / BASELINE_SAMPLE_COUNT;
                         const volumeThreshold = Math.max(avgBaseline + 25, 60);
-                        const suddenIncreaseThreshold = avgBaseline + 40;
 
-                        // Detect blow: significant sustained volume OR sudden jump
+                        // Detect blow: significant sustained volume
                         if (currentVolume > volumeThreshold && currentVolume > avgBaseline * 1.3) {
                             blowCounter++;
                             if (blowCounter >= 2) {
@@ -527,6 +524,7 @@ backgroundMusic.loop = true;
             }
             if (audioContext && audioContext.state !== 'closed') {
                 audioContext.close();
+                audioContext = null;
             }
         }
 
@@ -630,68 +628,6 @@ backgroundMusic.loop = true;
         window.addEventListener('beforeunload', function() {
             stopMicrophone();
         });
-        function startBoth() {
-    // 1. Initialize the Audio Context to bypass browser security
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    
-    // 2. Play your background music
-    backgroundMusic.play()
-        .then(() => console.log("Music started smoothly!"))
-        .catch(err => console.log("Audio play blocked: ", err));
-
-    // 3. Start the microphone setup
-    startMicrophoneListening();
-    
-    // 4. Run your original reset/start logic if you have one
-    if (typeof resetExperience === "function") {
-        resetExperience();
-    }
-}
-
-// Separate function to request microphone permission
-function startMicrophoneListening() {
-    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-        .then(function(stream) {
-            // Links perfectly with the variables seen in your photo
-            let micStream = stream;
-            analyser = audioContext.createAnalyser();
-            microphone = audioContext.createMediaStreamSource(stream);
-            javascriptNode = audioContext.createScriptProcessor(256, 1, 1);
-
-            analyser.smoothingTimeConstant = 0.8;
-            analyser.fftSize = 1024;
-
-            microphone.connect(analyser);
-            analyser.connect(javascriptNode);
-            javascriptNode.connect(audioContext.destination);
-
-            javascriptNode.onaudioprocess = function() {
-                const array = new Uint8Array(analyser.frequencyBinCount);
-                analyser.getByteFrequencyData(array);
-                
-                let values = 0;
-                for (let i = 0; i < array.length; i++) {
-                    values += array[i];
-                }
-                
-                const average = values / array.length;
-                
-                // If she blows into the microphone
-                if (average > 40 && !candleBlown) { 
-                    candleBlown = true;
-                    
-                    // Trigger your candle blowout animation here!
-                    console.log("Candles blown out!");
-                    alert("Happy Birthday! 🎂🎉");
-                }
-            };
-        })
-        .catch(function(err) {
-            console.error("Microphone issue: ", err);
-        });
-}
     </script>
 
 </body>
